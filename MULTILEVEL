@@ -1,4 +1,4 @@
-#include <stdio.h>
+include <stdio.h>
 #include <stdlib.h>
 
 #define TIME_QUANTUM 4
@@ -125,25 +125,46 @@ int main() {
     return 0;
 }
 
-output
+
+
+Output:
 Enter the total number of processes: 4
 
-Enter details for Process 1:
+Enter details for Process 1
 Arrival Time: 0
 Burst Time: 6
 Priority (1 for FCFS - High Priority, 2 for Round Robin - Low Priority): 1
 
-Enter details for Process 2:
+Enter details for Process 2
 Arrival Time: 1
 Burst Time: 8
 Priority (1 for FCFS - High Priority, 2 for Round Robin - Low Priority): 2
 
-Enter details for Process 3:
+Enter details for Process 3
 Arrival Time: 2
 Burst Time: 4
 Priority (1 for FCFS - High Priority, 2 for Round Robin - Low Priority): 1
 
-Enter details for Process 4:
+Enter details for Process 4
 Arrival Time: 3
 Burst Time: 5
 Priority (1 for FCFS - High Priority, 2 for Round Robin - Low Priority): 2
+
+Queue 1 (FCFS - Higher Priority) Execution Order:
+P1 -> P3 -> End
+
+Queue 2 (Round Robin - Lower Priority) Execution Order:
+P2 -> P4 -> P2 -> P4 -> End
+
+Final Results for Queue 1 (FCFS - High Priority):
+PID     Arrival Burst   Completion      Turnaround      Waiting
+1       0       6       6               6               0
+3       2       4       10              8               4
+
+Final Results for Queue 2 (Round Robin - Low Priority):
+PID     Arrival Burst   Completion      Turnaround      Waiting
+2       1       8       22              21              13
+4       3       5       23              20              15
+
+Process returned 0 (0x0)   execution time : 31.528 s
+Press any key to continue.
