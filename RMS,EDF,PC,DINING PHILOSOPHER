@@ -1,0 +1,279 @@
+Rate_monotonic_scheduling:
+
+#include <stdio.h>
+#include <stdlib.h>
+
+#define MAX_PROCESSES 10
+#define MAX_TIME 50  // Maximum simulation time
+
+typedef struct {
+    int pid;
+    int burst;
+    int period;
+    int remaining_time;
+    int next_arrival;
+} Process;
+
+void rate_monotonic_scheduling(Process p[], int n) {
+    int time = 0, executed;
+    printf("\nRate Monotonic Scheduling:\n");
+    printf("PID\tBurst\tPeriod\n");
+    for (int i = 0; i < n; i++)
+        printf("%d\t%d\t%d\n", p[i].pid, p[i].burst, p[i].period);
+
+    while (time < MAX_TIME) {
+        executed = -1;
+
+        for (int i = 0; i < n; i++) {
+            if (p[i].next_arrival <= time && p[i].remaining_time > 0) {
+                if (executed == -1 || p[i].period < p[executed].period)
+                    executed = i;
+            }
+        }
+
+        if (executed != -1) {
+            printf("%dms : Task %d is running.\n", time, p[executed].pid);
+            p[executed].remaining_time--;
+            if (p[executed].remaining_time == 0) {
+                p[executed].next_arrival += p[executed].period;
+                p[executed].remaining_time = p[executed].burst; // Reset for periodic execution
+            }
+        }
+        time++;
+    }
+}
+
+int main() {
+    int n;
+    Process processes[MAX_PROCESSES];
+
+    printf("Enter the number of processes: ");
+    scanf("%d", &n);
+
+    printf("Enter the CPU burst times:\n");
+    for (int i = 0; i < n; i++) {
+        processes[i].pid = i + 1;
+        scanf("%d", &processes[i].burst);
+        processes[i].remaining_time = processes[i].burst;
+    }
+
+    printf("Enter the time periods:\n");
+    for (int i = 0; i < n; i++) {
+        scanf("%d", &processes[i].period);
+        processes[i].next_arrival = 0;
+    }
+
+    rate_monotonic_scheduling(processes, n);
+
+    return 0;
+}
+
+
+
+Earliest_deadline_first:
+
+#include <stdio.h>
+#include <stdlib.h>
+
+#define MAX_PROCESSES 10
+#define MAX_TIME 50  // Maximum simulation time
+
+typedef struct {
+    int pid;
+    int burst;
+    int deadline;
+    int period;
+    int remaining_time;
+    int next_arrival;
+} Process;
+
+void earliest_deadline_first(Process p[], int n) {
+    int time = 0, executed;
+    printf("\nEarliest Deadline Scheduling:\n");
+    printf("PID\tBurst\tDeadline\tPeriod\n");
+    for (int i = 0; i < n; i++)
+        printf("%d\t%d\t%d\t\t%d\n", p[i].pid, p[i].burst, p[i].deadline, p[i].period);
+
+    while (time < MAX_TIME) {
+        executed = -1;
+
+        for (int i = 0; i < n; i++) {
+            if (p[i].next_arrival <= time && p[i].remaining_time > 0) {
+                if (executed == -1 || p[i].deadline < p[executed].deadline)
+                    executed = i;
+            }
+        }
+
+        if (executed != -1) {
+            printf("%dms : Task %d is running.\n", time, p[executed].pid);
+            p[executed].remaining_time--;
+            if (p[executed].remaining_time == 0) {
+                p[executed].next_arrival += p[executed].period;
+                p[executed].remaining_time = p[executed].burst;
+            }
+        }
+        time++;
+    }
+}
+
+int main() {
+    int n;
+    Process processes[MAX_PROCESSES];
+
+    printf("Enter the number of processes: ");
+    scanf("%d", &n);
+
+    printf("Enter the CPU burst times:\n");
+    for (int i = 0; i < n; i++) {
+        processes[i].pid = i + 1;
+        scanf("%d", &processes[i].burst);
+        processes[i].remaining_time = processes[i].burst;
+    }
+
+    printf("Enter the time periods:\n");
+    for (int i = 0; i < n; i++) {
+        scanf("%d", &processes[i].period);
+        processes[i].next_arrival = 0;
+    }
+
+    printf("Enter the deadlines:\n");
+    for (int i = 0; i < n; i++) {
+        scanf("%d", &processes[i].deadline);
+    }
+
+    earliest_deadline_first(processes, n);
+
+    return 0;
+}
+
+
+Producer-Consumer Problem AND Dining Philosophers Problem (Simple):
+
+
+
+#include <stdio.h>
+#include <stdlib.h>
+#include <pthread.h>
+#include <semaphore.h>
+#include <unistd.h>
+
+// ---------------------------
+// Producer-Consumer Problem (Simple)
+// ---------------------------
+int buffer;
+sem_t empty, full;
+pthread_mutex_t mutex;
+
+void* producer(void* arg) {
+    int item = rand() % 100;
+    sem_wait(&empty);
+    pthread_mutex_lock(&mutex);
+
+    buffer = item;
+    printf("Producer produced: %d\n", item);
+
+    pthread_mutex_unlock(&mutex);
+    sem_post(&full);
+    return NULL;
+}
+
+void* consumer(void* arg) {
+    int item;
+    sem_wait(&full);
+    pthread_mutex_lock(&mutex);
+
+    item = buffer;
+    printf("Consumer consumed: %d\n", item);
+
+    pthread_mutex_unlock(&mutex);
+    sem_post(&empty);
+    return NULL;
+}
+
+void run_producer_consumer() {
+    pthread_t prod, cons;
+    sem_init(&empty, 0, 1);
+    sem_init(&full, 0, 0);
+    pthread_mutex_init(&mutex, NULL);
+
+    pthread_create(&prod, NULL, producer, NULL);
+    pthread_create(&cons, NULL, consumer, NULL);
+
+    pthread_join(prod, NULL);
+    pthread_join(cons, NULL);
+
+    sem_destroy(&empty);
+    sem_destroy(&full);
+    pthread_mutex_destroy(&mutex);
+}
+
+// ---------------------------
+// Dining Philosophers Problem (Simple)
+// ---------------------------
+sem_t fork1, fork2;
+
+void* philosopher(void* arg) {
+    int id = *(int*)arg;
+    printf("Philosopher %d is thinking\n", id);
+    sleep(1);
+
+    sem_wait(&fork1);
+    sem_wait(&fork2);
+
+    printf("Philosopher %d is eating\n", id);
+    sleep(1);
+
+    sem_post(&fork1);
+    sem_post(&fork2);
+
+    printf("Philosopher %d finished eating\n", id);
+    return NULL;
+}
+
+void run_dining_philosophers() {
+    pthread_t phil;
+    int id = 1;
+    sem_init(&fork1, 0, 1);
+    sem_init(&fork2, 0, 1);
+
+    pthread_create(&phil, NULL, philosopher, &id);
+    pthread_join(phil, NULL);
+
+    sem_destroy(&fork1);
+    sem_destroy(&fork2);
+}
+
+int main() {
+    int choice;
+    while (1) {
+        printf("\n1. Producer-Consumer Problem\n");
+        printf("2. Dining Philosophers Problem\n");
+        printf("3. Exit\n");
+        printf("Enter your choice: ");
+        scanf("%d", &choice);
+
+        switch (choice) {
+            case 1:
+                run_producer_consumer();
+                break;
+            case 2:
+                run_dining_philosophers();
+                break;
+            case 3:
+                exit(0);
+            default:
+                printf("Invalid choice!\n");
+        }
+    }
+    return 0;
+}
+
+
+
+
+
+
+
+
+
+
